@@ -19,9 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import sys
+import sys,RPi.GPIO as GPIO
 import http.client as http
 import Adafruit_DHT,time,urllib,json
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(27,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 deviceId="DWC50qSX"
 deviceKey="i9X6Pky0S7bgpjS5"
 def post_to_mcs(payload):
@@ -64,13 +68,14 @@ else:
 # If this happens try again!
 
 while True:
+	ss=GPIO.input(27)
 	h0, t0= Adafruit_DHT.read_retry(sensor, pin)
-	if h0 is not None and t0 is not None:
-		print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(t0, h0))
+	if (ss==1):
+		if h0 is not None and t0 is not None:
+			print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(t0, h0))
 
-		payload = {"datapoints":[{"dataChnId":"Humidity","values":{"value":h0}},{"dataChnId":"Temperature","values":{"value":t0}}]}
-		post_to_mcs(payload)
+			payload = {"datapoints":[{"dataChnId":"Humidity","values":{"value":h0}},{"dataChnId":"Temperature","values":{"value":t0}}]}
+			post_to_mcs(payload)
 	else:
 		print('Failed to get reading. Try again!')
-		sys.exit(1)
-
+		
